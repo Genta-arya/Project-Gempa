@@ -6,11 +6,13 @@ import {
   ScrollView,
   SafeAreaView,
   RefreshControl,
+  TouchableOpacity,
 } from "react-native";
 import axios from "axios";
 import { xml2json } from "xml-js";
 const moment = require("moment");
-import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import { AntDesign, Ionicons, Entypo,FontAwesome5  } from "@expo/vector-icons";
+
 import * as Location from "expo-location";
 
 const Cuaca = () => {
@@ -21,7 +23,7 @@ const Cuaca = () => {
   const [locationInfo, setLocationInfo] = useState(null);
   const [locationCuaca, setLocationCuaca] = useState(null);
   const [cityName, setCityName] = useState("");
-
+  const [refreshTimer, setRefreshTimer] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   useEffect(() => {
     fetchForecastData();
@@ -221,42 +223,10 @@ const Cuaca = () => {
   };
   const onRefresh = () => {
     setRefreshing(true);
-    refreshLocation(); // Panggil fungsi refreshLocation di sini
+    refreshLocation();
     setTimeout(() => {
       setRefreshing(false);
-    }, 1000); // Atur waktu penundaan untuk menghentikan indikator refresh
-  };
-
-  const renderForecastInfo = () => {
-    if (forecastData) {
-      return (
-        <View style={styles.infoContainer}>
-          <Text style={styles.infoTitle}>Info Cuaca Terkini:</Text>
-          {forecastData.map((data, index) => (
-            <View key={index} style={styles.weatherItemContainer}>
-              <View style={styles.weatherItemLeft}>
-                <Text style={styles.weatherItemDate}>{data.datetime}</Text>
-                <Text style={styles.weatherItemTemp}>
-                  {data.temperatureValueC}°C / {data.temperatureValueF}°F
-                </Text>
-                <Text style={styles.weatherItemDesc}>
-                  {data.weatherDescription}
-                </Text>
-              </View>
-              <View style={styles.weatherItemRight}>
-                {getWeatherIcon(data.weatherDescription)}
-              </View>
-            </View>
-          ))}
-        </View>
-      );
-    } else {
-      return (
-        <Text style={styles.loadingText}>
-          Gagal Mengambil data cuaca. Silahkan Refresh...
-        </Text>
-      );
-    }
+    }, 1000);
   };
 
   const getWeatherIcon = (weatherDescription) => {
@@ -301,7 +271,7 @@ const Cuaca = () => {
       default:
         break;
     }
-    return <Ionicons name={iconName} size={24} color="black" />;
+    return <Ionicons name={iconName} size={50} color="#1E90FF" style={{marginRight:20,}}/>;
   };
 
   const refreshLocation = () => {
@@ -313,163 +283,204 @@ const Cuaca = () => {
     getLocation();
   };
 
+  const renderForecastInfo = () => {
+    if (forecastData) {
+      return forecastData.map((data, index) => (
+        <TouchableOpacity
+          key={index}
+          style={styles.weatherItemContainer}
+          onPress={() => {}}
+        >
+          <View style={styles.weatherItemLeft}>
+            <View style={styles.dateTimeContainer}>
+              <AntDesign
+                name="clockcircleo"
+                size={24}
+                color="#1E90FF"
+                style={styles.clockIcon}
+              />
+              <Text style={styles.weatherItemDate}>{data.datetime}</Text>
+            </View>
+            <View style={styles.dateTimeContainers}>
+              <FontAwesome5
+                name="temperature-high"
+                size={24}
+                color="red"
+                style={styles.clockIcons}
+              />
+              <Text style={styles.weatherItemDate}> {data.temperatureValueC}°C / {data.temperatureValueF}°F</Text>
+            </View>
+            <View style={styles.dateTimeContainers}>
+             
+              <Text style={styles.weatherItemDate}>{data.weatherDescription}</Text>
+            </View>
+          </View>
+          <View style={styles.weatherItemRight}>
+            {getWeatherIcon(data.weatherDescription)}
+          </View>
+        </TouchableOpacity>
+      ));
+    } else {
+      return (
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>
+            Gagal Mengambil data cuaca. Silahkan Refresh...
+          </Text>
+        </View>
+      );
+    }
+  };    
+  
+
   return (
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Entypo name="location" size={30} color="red" />
+        <Text style={styles.locationText}>
+          Lokasi Anda: {locationInfo || "Mencari lokasi..."}
+        </Text>
+        <TouchableOpacity
+          style={styles.refreshButton}
+          onPress={onRefresh}
+          disabled={refreshing}
+        >
+          <Text style={styles.refreshButtonText}>
+            {refreshing ? "Memperbarui..." : "Perbarui Data Cuaca"}
+          </Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        <View style={styles.infoSection}>
-          <Text style={styles.locationText}>
-            Lokasi Anda: {locationInfo || "Mencari lokasi..."}
-          </Text>
-
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoTitle}>Info Cuaca Terkini:</Text>
           {renderForecastInfo()}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 };
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  scrollContainer: {
-    flexGrow: 1,
-    marginTop: 10,
-  },
-  refreshButton: {
-    marginVertical: 10,
-    alignSelf: "center",
-    padding: 10,
-    backgroundColor: "#ddd",
-    borderRadius: 5,
-  },
-  refreshButtonText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  mapContainer: {
-    height: 300,
-    marginHorizontal: 10,
-    marginBottom: 10,
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-  map: {
-    flex: 1,
-  },
-  infoSection: {
-    marginHorizontal: 10,
-    marginBottom: 20,
-  },
-  locationText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#333",
-  },
-  infoContainer: {
-    backgroundColor: "#f2f2f2",
-    padding: 10,
-    borderRadius: 25,
-    marginBottom: 10,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#333",
-  },
-  gempaItemContainer: {
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 5,
-    padding: 10,
-    backgroundColor: "#f9f9f9",
-  },
-
-  distanceContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 10,
-  },
-  distanceIcon: {
-    marginRight: 5,
-  },
-  distanceText: {
-    fontSize: 14,
-    color: "#555",
-    marginTop: -10,
-  },
-  loadingText: {
-    fontSize: 16,
-    fontStyle: "italic",
-    color: "#333",
-  },
-  weatherItemContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  weatherItemLeft: {
-    flex: 1,
-  },
-  weatherItemRight: {
-    marginLeft: 10,
-  },
-  weatherItemDate: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-    color: "#333",
-  },
-  weatherItemTemp: {
-    fontSize: 14,
-    color: "#333",
-  },
-  weatherItemDesc: {
-    fontSize: 14,
-    color: "#333",
-  },
-  gempaItemContainer: {
-    flexDirection: "column",
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 5,
-    padding: 10,
-    backgroundColor: "#f9f9f9",
-  },
-  gempaItemLabel: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-    color: "#333",
-    marginTop: 10,
-  },
-  gempaItemValuesContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  gempaItemValues: {
-    fontSize: 14,
-    color: "#555",
-  },
-
-  calloutContainer: {
-    backgroundColor: "white",
-    padding: 10,
-    borderRadius: 5,
-  },
-  calloutText: {
-    fontSize: 16,
-  },
-});
-
+    container: {
+      flex: 1,
+      backgroundColor: "#f5f5f5",
+    },
+    header: {
+      backgroundColor: "white",
+      padding: 10,
+      paddingBottom:30,
+      elevation: 20,
+      alignItems: "center",
+      borderBottomLeftRadius:60,
+      borderBottomRightRadius:60,
+    },
+    refreshButton: {
+      padding: 10,
+      backgroundColor: "#1E90FF",
+      borderRadius: 15,
+      marginTop: 10,
+      elevation: 20,
+    },
+    refreshButtonText: {
+      fontSize: 13,
+      fontWeight: "bold",
+      color: "white",
+    },
+    locationText: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 5,
+      marginTop: 15,
+      textAlign: "center",
+    },
+    scrollContainer: {
+      flexGrow: 1,
+      marginTop: 10,
+      paddingBottom:30,
+    },
+    infoContainer: {
+      paddingHorizontal: 10,
+    },
+    infoTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 10,
+      marginTop:20,
+    },
+    weatherItemContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: 10,
+      padding: 10,
+      borderRadius: 5,
+      elevation:2,
+      paddingBottom:10,
+    },
+    weatherItemLeft: {
+      flex: 1,
+      marginLeft: 10,
+    },
+    weatherItemRight: {
+      marginLeft: 20,
+    },
+    weatherItemDate: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    weatherItemTemp: {
+      fontSize: 14,
+      color: "#333",
+    },
+    weatherItemDesc: {
+      fontSize: 14,
+      color: "#333",
+    },
+    loadingContainer: {
+      alignItems: "center",
+      marginTop: 10,
+    },
+    loadingText: {
+      fontSize: 16,
+      fontStyle: "italic",
+      color: "#333",
+      alignSelf: "center",
+    },
+    dateTimeContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 5,
+      marginTop:10,
+    },
+    dateTimeContainers: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 5,
+        marginTop:10,
+      },
+    clockIcon: {
+      marginRight: 5,
+    },
+    clockIcons: {
+        marginRight: 5,
+        marginLeft:5,
+      },
+    weatherItemDate: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: '#333',
+      marginRight: 5,
+    },
+    temperatureContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 5,
+    },
+    temperatureIcon: {
+      marginRight: 5,
+    },
+  });
 export default Cuaca;

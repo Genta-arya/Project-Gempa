@@ -151,7 +151,7 @@ const MapScreen = () => {
         const gempaLatitude = parseFloat(coordinates[0]);
         const gempaLongitude = parseFloat(coordinates[1]);
 
-        const delta = 4.5;
+        const delta = 3;
         const region = {
           latitude: gempaLatitude,
           longitude: gempaLongitude,
@@ -230,7 +230,7 @@ const MapScreen = () => {
                     datetime,
                     "YYYYMMDDHHmm"
                   ).format("DD MMMM YYYY, HH:mm");
-                  console.log("ini data : ",formattedDatetime )
+                  console.log("ini data : ", formattedDatetime);
                   const weatherValue = weatherTimerange.value._text;
 
                   // Find matching temperature timerange
@@ -330,6 +330,7 @@ const MapScreen = () => {
         Jam: jam,
         Magnitude: magnitude,
         Kedalaman: kedalaman,
+        Dirasakan:Dirasakan,
 
         Wilayah: wilayah,
       } = gempaData;
@@ -364,6 +365,11 @@ const MapScreen = () => {
           </View>
 
           <View style={styles.gempaItem}>
+            <Text style={styles.gempaItemLabel}>Dirasakan:</Text>
+            <Text style={styles.gempaItemValue}>{Dirasakan}</Text>
+          </View>
+
+          <View style={styles.gempaItem}>
             <Text style={styles.gempaItemLabel}>Jarak:</Text>
             <View style={styles.distanceContainer}>
               <Text style={styles.distanceText}>
@@ -379,9 +385,19 @@ const MapScreen = () => {
   };
   const renderCuacaInfo = () => {
     if (!forecastData) {
-      return null;
+      return (
+        <TouchableOpacity
+          style={styles.refreshButton}
+          onPress={onRefresh}
+          disabled={refreshing}
+        >
+          <Text style={styles.refreshButtonText}>
+            {refreshing ? "Memperbarui..." : "Perbarui Data Cuaca"}
+          </Text>
+        </TouchableOpacity>
+      );
     }
-  
+
     const currentDate = new Date();
     const formattedDate = moment(currentDate).format("DD MMMM YYYY");
 
@@ -396,7 +412,7 @@ const MapScreen = () => {
         </Text>
       );
     }
-  
+
     return (
       <View style={styles.cuacaInfoContainer}>
         <Text style={styles.cuacaInfoTitle}>Perkiraan Cuaca</Text>
@@ -425,8 +441,6 @@ const MapScreen = () => {
       </View>
     );
   };
-  
-  
 
   const getWeatherIcon = (weatherDescription) => {
     let iconName = "help-circle-outline";
@@ -481,44 +495,35 @@ const MapScreen = () => {
   };
 
   <View style={styles.mapContainer}>
-    {initialRegion && (
-      <MapView
-        style={styles.map}
-        initialRegion={initialRegion}
-        showsUserLocation={true}
-      >
-        <Circle
-          center={initialRegion}
-          radius={70000}
-          fillColor="rgba(255, 0, 0, 0.2)"
-          strokeColor="rgba(100, 150, 255, 0.5)"
-          strokeWidth={2}
-          zIndex={2}
-        />
-        {gempaData && (
-          <Marker coordinate={initialRegion} pinColor="red">
-            <Callout onPress={handleCalloutPress}>
-              <TouchableOpacity>
-                <View style={styles.calloutContainer}>
-                  <Text style={styles.calloutText}>{wilayah}</Text>
-                </View>
-              </TouchableOpacity>
-            </Callout>
-          </Marker>
-        )}
-      </MapView>
-    )}
-    <Animated.View
-      style={[
-        styles.circleOverlay,
-        {
-          transform: [{ scale: animationValue }],
-          borderStyle: "solid",
-          borderWidth: 2,
-          borderColor: "red",
-        },
-      ]}
-    />
+    <View style={styles.mapBorder}>
+      {initialRegion && (
+        <MapView
+          style={styles.map}
+          initialRegion={initialRegion}
+          showsUserLocation={true}
+        >
+          <Circle
+            center={initialRegion}
+            radius={50000}
+            fillColor="rgba(255, 0, 0, 0.2)"
+            strokeColor="rgba(100, 150, 255, 0.5)"
+            strokeWidth={2}
+            zIndex={2}
+          />
+          {gempaData && (
+            <Marker coordinate={initialRegion} pinColor="red">
+              <Callout onPress={handleCalloutPress}>
+                <TouchableOpacity>
+                  <View style={styles.calloutContainer}>
+                    <Text style={styles.calloutText}>{wilayah}</Text>
+                  </View>
+                </TouchableOpacity>
+              </Callout>
+            </Marker>
+          )}
+        </MapView>
+      )}
+    </View>
   </View>;
 
   const refreshLocation = () => {
@@ -549,7 +554,7 @@ const MapScreen = () => {
 
   // Create an animation
   Animated.timing(animationValue, {
-    toValue: 20, // Set the desired scale value
+    toValue: 5, // Set the desired scale value
     duration: 2000, // Set the duration of the animation in milliseconds
     useNativeDriver: true, // Enable the native driver for performance
   }).start(); // Start the animation
@@ -625,21 +630,24 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     alignSelf: "center",
     padding: 10,
-    backgroundColor: "#ddd",
-    borderRadius: 5,
+    backgroundColor: "#1E90FF",
+    borderRadius: 15,
   },
   refreshButtonText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#333",
+    color: "white",
   },
   mapContainer: {
     height: 300,
-    marginHorizontal: 5,
+    marginHorizontal: 10,
     marginBottom: 5,
     borderRadius: 15,
     overflow: "hidden",
+    borderWidth: 5,
+    borderColor: "black",
   },
+
   map: {
     flex: 1,
   },
@@ -721,11 +729,11 @@ const styles = StyleSheet.create({
   },
   calloutContainer: {
     backgroundColor: "white",
-    padding: 10,
+
     borderRadius: 5,
   },
   calloutText: {
-    fontSize: 16,
+    fontSize: 12,
   },
 
   cuacaInfoContainer: {
@@ -737,7 +745,7 @@ const styles = StyleSheet.create({
   cuacaInfoTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    
+
     alignSelf: "center",
     marginTop: 20,
   },
