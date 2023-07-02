@@ -12,10 +12,15 @@ import { PanGestureHandler, State } from "react-native-gesture-handler";
 
 const Maps = ({ route }) => {
   const { gempa } = route.params;
-  const { Lintang, Bujur, Potensi } = gempa;
-  const coordinates = {
-    latitude: parseFloat(Lintang),
-    longitude: parseFloat(Bujur),
+  const { Coordinates, Potensi } = gempa;
+
+  const [latitude, longitude] = Coordinates.split(",").map((coord) =>
+    parseFloat(coord)
+  );
+
+  const map = {
+    latitude,
+    longitude,
   };
   const pulseAnimation = useRef(new Animated.Value(1)).current;
   const [showInfo, setShowInfo] = useState(false);
@@ -72,76 +77,85 @@ const Maps = ({ route }) => {
 
   return (
     <View style={{ flex: 1 }}>
-      <MapView
-        style={{ flex: 1 }}
-        initialRegion={{
-          latitude: coordinates.latitude,
-          longitude: coordinates.longitude,
-          latitudeDelta: 7,
-          longitudeDelta: 7,
-        }}
-      >
-        <Marker coordinate={coordinates}>
-          <Animated.View
-            style={[styles.marker, { transform: [{ scale: pulseAnimation }] }]}
-          />
-        </Marker>
-      </MapView>
-      <PanGestureHandler
-        onGestureEvent={Animated.event(
-          [{ nativeEvent: { translationY: translateY } }],
-          { useNativeDriver: true }
-        )}
-        onHandlerStateChange={(event) => {
-          if (event.nativeEvent.state === State.END) {
-            if (event.nativeEvent.translationY < -100 && !showInfo) {
-              setShowInfo(true);
-            } else if (event.nativeEvent.translationY > 100 && showInfo) {
-              setShowInfo(false);
-            }
-
-            if (showInfo) {
-              Animated.timing(translateY, {
-                toValue: 0,
-                duration: 300,
-                easing: Easing.inOut(Easing.ease),
-                useNativeDriver: true,
-              }).start();
-            } else {
-              Animated.spring(translateY, {
-                toValue: 0,
-                useNativeDriver: true,
-              }).start();
-            }
-          }
-        }}
-      >
+    <MapView
+      style={{ flex: 1 }}
+      initialRegion={{
+        latitude: map.latitude,
+        longitude: map.longitude,
+        latitudeDelta: 7,
+        longitudeDelta: 7,
+      }}
+    >
+      <Marker coordinate={map}>
         <Animated.View
-          style={[
-            styles.infoContainer,
-            { transform: [{ translateY: translateY }] },
-          ]}
-        >
-          {showInfo ? (
-            <View>
+          style={[styles.marker, { transform: [{ scale: pulseAnimation }] }]}
+        />
+      </Marker>
+    </MapView>
+    <PanGestureHandler
+      onGestureEvent={Animated.event(
+        [{ nativeEvent: { translationY: translateY } }],
+        { useNativeDriver: true }
+      )}
+      onHandlerStateChange={(event) => {
+        if (event.nativeEvent.state === State.END) {
+          if (event.nativeEvent.translationY < -100 && !showInfo) {
+            setShowInfo(true);
+          } else if (event.nativeEvent.translationY > 100 && showInfo) {
+            setShowInfo(false);
+          }
+  
+          if (showInfo) {
+            Animated.timing(translateY, {
+              toValue: 0,
+              duration: 300,
+              easing: Easing.inOut(Easing.ease),
+              useNativeDriver: true,
+            }).start();
+          } else {
+            Animated.spring(translateY, {
+              toValue: 0,
+              useNativeDriver: true,
+            }).start();
+          }
+        }
+      }}
+    >
+      <Animated.View
+        style={[
+          styles.infoContainer,
+          { transform: [{ translateY: translateY }] },
+        ]}
+      >
+        {showInfo ? (
+          <View>
             <View style={styles.indicator} />
-          
-            <View style={[styles.infoContent, Potensi !== 'Tidak berpotensi tsunami' && { borderColor: 'red', backgroundColor: 'red' }]}>
-    <Text style={styles.infoText}>{Potensi}</Text>
-  </View>
-          </View>
-          
-          ) : (
-            <TouchableOpacity
-              style={styles.infoButton}
-              onPress={() => setShowInfo(true)}
+  
+            <View
+              style={[
+                styles.infoContent,
+                Potensi !== "Tidak berpotensi tsunami" && {
+                  borderColor: "red",
+                  backgroundColor: "rgba(255, 0, 0, 0.3)",
+                },
+              ]}
             >
-              <Text style={styles.infoButtonText}>Status</Text>
-            </TouchableOpacity>
-          )}
-        </Animated.View>
-      </PanGestureHandler>
-    </View>
+              <View style={styles.title}>
+                <Text style={styles.infoText}>{Potensi}</Text>
+              </View>
+            </View>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.infoButton}
+            onPress={() => setShowInfo(true)}
+          >
+            <Text style={styles.infoButtonText}>Status Potensi</Text>
+          </TouchableOpacity>
+        )}
+      </Animated.View>
+    </PanGestureHandler>
+  </View>
   );
 };
 
@@ -152,7 +166,7 @@ const styles = {
     borderRadius: 10,
     borderWidth: 2,
     borderColor: "red",
-    backgroundColor: "rgba(255, 0, 0, 0.3)",
+    backgroundColor: "red",
   },
   infoContainer: {
     position: "absolute",
@@ -182,14 +196,14 @@ const styles = {
     borderColor: "green",
     borderRadius: 20,
     padding: 10,
-    backgroundColor: "green", 
+    backgroundColor: "green",
   },
 
   infoText: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "bold",
     textAlign: "center",
-    color:"white",
+    color: "white",
   },
 
   indicator: {

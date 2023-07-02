@@ -30,7 +30,6 @@ const MapScreen = () => {
   const [initialRegion, setInitialRegion] = useState(null);
   const [initialRegionUser, setInitialRegionUser] = useState(null);
   const [wilayah, setWilayah] = useState("");
-  const [calloutVisible, setCalloutVisible] = useState(true);
   const [gempaData, setGempaData] = useState(null);
   const [forecastData, setForecastData] = useState(null);
   const [locationInfo, setLocationInfo] = useState(null);
@@ -38,7 +37,7 @@ const MapScreen = () => {
   const [cityName, setCityName] = useState("");
   const [distance, setDistance] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
+
 
   useEffect(() => {
     fetchForecastData();
@@ -232,8 +231,6 @@ const MapScreen = () => {
                   ).format("DD MMMM YYYY, HH:mm");
                   console.log("ini data : ", formattedDatetime);
                   const weatherValue = weatherTimerange.value._text;
-
-                  // Find matching temperature timerange
                   const temperatureTimerange = temperatureTimeranges[index];
                   const temperatureValueC = temperatureTimerange.value.find(
                     (value) => value._attributes.unit === "C"
@@ -317,10 +314,10 @@ const MapScreen = () => {
   };
   const onRefresh = () => {
     setRefreshing(true);
-    refreshLocation(); // Panggil fungsi refreshLocation di sini
+    refreshLocation(); 
     setTimeout(() => {
       setRefreshing(false);
-    }, 1000); // Atur waktu penundaan untuk menghentikan indikator refresh
+    }, 1000); 
   };
 
   const renderGempaInfo = () => {
